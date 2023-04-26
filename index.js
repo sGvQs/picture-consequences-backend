@@ -46,11 +46,25 @@ io.on('connection', (socket) => {
     io.emit('started_game');
   });
 
+  socket.on('drawing', (data) => {
+    // データを処理する
+    // ...
+    // 他のクライアントにデータを送信する
+    socket.broadcast.emit('drawing', data);
+  });
+
+  socket.on('clear', () => {
+    // データを処理する
+    // ...
+    // 他のクライアントにデータを送信する
+    socket.broadcast.emit('clear');
+  });
+
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });
 });
 
-server.listen(5000, () => {
+server.listen(process.env.PORT || 5000, () => {
   console.log('listening on *:5000');
 });
