@@ -66,5 +66,7 @@ io.on('connection', (socket) => {
 });
 
 server.listen(process.env.PORT || 5000, () => {
-  console.log(`listening on ${process.env.PORT}`);
+  console.log(`listening on ${process.env.PORT} or 5000`);
+  console.log('process.env.NODE_ENV : ' + process.env.NODE_ENV);
+  console.log('process.env.VERCEL_URL : ' + process.env.VERCEL_URL);
 });
