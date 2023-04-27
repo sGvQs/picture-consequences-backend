@@ -8,14 +8,14 @@ const cors = require('cors');
 
 app.use(
   cors({
-    origin: process.env.VERCEL_URL,
+    origin: '*',
   })
 );
 
 const { Server } = require('socket.io');
 const io = new Server(server, {
   cors: {
-    origin: process.env.VERCEL_URL,
+    origin: '*',
   },
 });
 
