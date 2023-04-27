@@ -4,6 +4,14 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 
+const cors = require('cors');
+
+app.use(
+  cors({
+    origin: process.env.VERCEL_URL,
+  })
+);
+
 const { Server } = require('socket.io');
 const io = new Server(server, {
   cors: {
