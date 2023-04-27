@@ -7,10 +7,7 @@ const server = http.createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(server, {
   cors: {
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? process.env.VERCEL_URL
-        : process.env.DEV_URL,
+    origin: process.env.VERCEL_URL,
   },
 });
 
