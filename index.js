@@ -15,7 +15,6 @@ app.use(
 );
 
 const { Server } = require('socket.io');
-const cli = require('nodemon/lib/cli');
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -69,9 +68,8 @@ io.on('connection', (socket) => {
         roomId: roomId,
       };
       io.to(response.clientId).emit('joined_room', response);
-      console.log(response);
     } else {
-      console.log('not found');
+      socket.emit('not_found', roomId);
     }
   });
 });
