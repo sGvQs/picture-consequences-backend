@@ -6,6 +6,8 @@ const server = http.createServer(app);
 
 const cors = require('cors');
 
+const socketClientsLists = [];
+
 app.use(
   cors({
     origin: '*',
@@ -13,6 +15,7 @@ app.use(
 );
 
 const { Server } = require('socket.io');
+const cli = require('nodemon/lib/cli');
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -20,58 +23,57 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
-
   socket.on('create_room', () => {
     const roomId = Math.random().toString(36).substring(2, 16);
-    socket.emit('created_roomId', roomId);
+    socket.join(roomId);
+    const clientId = [];
+    const clients = io.sockets.adapter.rooms.get(roomId);
+    clients.forEach((client) => {
+      clientId.push(client);
+    });
+    const response = {
+      clientId: clientId.shift(),
+      roomId: roomId,
+    };
+    io.to(roomId).emit('created_room', response);
   });
 
-  socket.on('serch_room', (roomId) => {
+  socket.on('notificate_joining_event', (data) => {
+    const clients = io.sockets.adapter.rooms.get(data.roomId);
+    io.to(data.roomId).emit('get_joining_event', clients.size);
+  });
+
+  socket.on('start_game', (roomId) => {
     const clients = io.sockets.adapter.rooms.get(roomId);
 
-    if (clients) {
-      console.log('ルームが存在します');
-      console.log(clients);
-      io.emit('found_room', roomId);
-    } else {
-      console.log('ルームが存在しません');
-      io.emit('notFound_room', roomId);
-    }
+    socketClientsLists.length = 0;
+
+    clients.forEach((client) => {
+      socketClientsLists.push(client);
+    });
+
+    io.to(roomId).emit('started_game', socketClientsLists);
   });
 
   socket.on('join_room', (roomId) => {
-    socket.join(roomId);
     const clients = io.sockets.adapter.rooms.get(roomId);
-    console.log(clients);
-    io.emit('join_new_member', clients.size);
-  });
-
-  socket.on('start_game', () => {
-    io.emit('started_game');
-  });
-
-  socket.on('drawing', (data) => {
-    // データを処理する
-    // ...
-    // 他のクライアントにデータを送信する
-    socket.broadcast.emit('drawing', data);
-  });
-
-  socket.on('clear', () => {
-    // データを処理する
-    // ...
-    // 他のクライアントにデータを送信する
-    socket.broadcast.emit('clear');
-  });
-
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
+    if (clients) {
+      socket.join(roomId);
+      const clientIds = [];
+      const newClientsList = io.sockets.adapter.rooms.get(roomId);
+      newClientsList.forEach((client) => {
+        clientIds.push(client);
+      });
+      const response = {
+        clientId: clientIds.pop(),
+        roomId: roomId,
+      };
+      io.to(response.clientId).emit('joined_room', response);
+      console.log(response);
+    } else {
+      console.log('not found');
+    }
   });
 });
 
-server.listen(process.env.PORT || 5000, () => {
-  console.log(`listening on ${process.env.PORT} or 5000`);
-  console.log('process.env.NODE_ENV : ' + process.env.NODE_ENV);
-  console.log('process.env.VERCEL_URL : ' + process.env.VERCEL_URL);
-});
+server.listen(process.env.PORT || 5000, () => {});
