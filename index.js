@@ -72,6 +72,10 @@ io.on('connection', (socket) => {
       socket.emit('not_found', roomId);
     }
   });
+
+  socket.on('drawing', (args) => {
+    socket.broadcast.to(args.roomId).emit('drawing', args.canvasData);
+  });
 });
 
 server.listen(process.env.PORT || 5000, () => {});
