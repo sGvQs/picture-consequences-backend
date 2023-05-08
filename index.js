@@ -7,6 +7,8 @@ const server = http.createServer(app);
 const cors = require('cors');
 
 const socketClientsLists = [];
+let point = 0;
+let answer = '';
 
 app.use(
   cors({
@@ -75,6 +77,22 @@ io.on('connection', (socket) => {
 
   socket.on('drawing', (args) => {
     socket.broadcast.to(args.roomId).emit('drawing', args.canvasData);
+  });
+
+  socket.on('sending_time', (args) => {
+    socket.broadcast.to(args.roomId).emit('getting_time', args.time);
+  });
+
+  socket.on('done_drawing', (roomId) => {
+    io.to(roomId).emit('done_drawing');
+  });
+
+  socket.on('done_game', (roomId) => {
+    io.to(roomId).emit('done_game', point);
+  });
+
+  socket.on('send_animal', (animal) => {
+    answer = animal;
   });
 });
 
