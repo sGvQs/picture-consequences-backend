@@ -7,8 +7,9 @@ const server = http.createServer(app);
 const cors = require('cors');
 
 const socketClientsLists = [];
+const commentsLists = [];
 let point = 0;
-let answer = '';
+let answer;
 
 app.use(
   cors({
@@ -59,6 +60,7 @@ io.on('connection', (socket) => {
   socket.on('join_room', (roomId) => {
     const clients = io.sockets.adapter.rooms.get(roomId);
     if (clients) {
+      commentsLists.length = 0;
       socket.join(roomId);
       const clientIds = [];
       const newClientsList = io.sockets.adapter.rooms.get(roomId);
@@ -80,7 +82,12 @@ io.on('connection', (socket) => {
   });
 
   socket.on('sending_time', (args) => {
-    socket.broadcast.to(args.roomId).emit('getting_time', args.time);
+    painter = args.clientName;
+    const response = {
+      time: args.time,
+      clientName: args.clientName,
+    };
+    socket.broadcast.to(args.roomId).emit('getting_time', response);
   });
 
   socket.on('done_drawing', (roomId) => {
@@ -93,6 +100,21 @@ io.on('connection', (socket) => {
 
   socket.on('send_animal', (animal) => {
     answer = animal;
+  });
+
+  socket.on('sending_client_answer', (args) => {
+    let isCorrect = false;
+    if (args.clientAnswer === answer) {
+      isCorrect = true;
+    }
+    const messageObject = {
+      isCorrect: isCorrect,
+      clientId: args.clientId,
+      name: args.clientName,
+      message: args.clientAnswer,
+    };
+    commentsLists.push(messageObject);
+    io.to(args.roomId).emit('recieving_clients_answers', commentsLists);
   });
 });
 
